@@ -1,0 +1,6 @@
+#requires -Version 5.1
+<# Created by Dewald Pretorius #>
+param([string]$OutputPath)
+if(-not $OutputPath){$OutputPath="$([Environment]::GetFolderPath('Desktop'))\PowerPoint_Media_Reports"};New-Item $OutputPath -ItemType Directory -Force|Out-Null
+$media=Get-CimInstance Win32_CodecFile -ErrorAction SilentlyContinue|Select-Object -First 200 Name,Description,Version;$audio=Get-CimInstance Win32_SoundDevice -ErrorAction SilentlyContinue|Select-Object Name,Status,Manufacturer;$events=Get-WinEvent -FilterHashtable @{LogName='Application';StartTime=(Get-Date).AddDays(-5)} -ErrorAction SilentlyContinue|Where-Object Message -match 'POWERPNT|media|codec|audio|video'|Select-Object -First 40 TimeCreated,Id,ProviderName,Message
+@('POWERPOINT MEDIA PLAYBACK TROUBLESHOOTER','Created by Dewald Pretorius',"Generated: $(Get-Date)",'Audio devices:',($audio|Format-Table -AutoSize|Out-String -Width 220),'Codecs:',($media|Format-Table -AutoSize|Out-String -Width 220),'Events:',($events|Format-List|Out-String -Width 220),'Guidance: optimize media compatibility, avoid unsupported codecs, verify linked file paths, test local playback, and update graphics/audio drivers.')|Set-Content (Join-Path $OutputPath 'Report.txt') -Encoding UTF8
